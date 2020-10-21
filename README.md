@@ -1,2 +1,1 @@
-# trello_py_denisenko
-trello console client 
+Это мой консольный клиент для Trello!  
