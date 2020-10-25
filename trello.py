@@ -13,6 +13,10 @@ board_id = "bT3umroM"
 
 
 def read():
+	""" Получет данные доски
+		Выводит доски и их задачи
+	"""
+
 	# Получим данные всех колонок на доске:
 	column_data = requests.get(base_url.format('boards') + '/' + board_id + '/lists', params=auth_params).json()
 	# Теперь выведем название каждой колонки и всех заданий, которые к ней относятся:
@@ -28,6 +32,8 @@ def read():
 
 
 def create(name, column_name):
+	"""Создает задачу с произвольным названием в одной из колонок"""
+
 	# Получим данные всех колонок на доске      
 	column_data = requests.get(base_url.format('boards') + '/' + board_id + '/lists', params=auth_params).json()
 
@@ -64,7 +70,7 @@ def move(name, column_name):
 if __name__ == "__main__":
 	if len(sys.argv) <= 2:
 		read()
-	elif sys.argv[1] == 'create':
+	elif sys.argv[1] == '-create':
 		create(sys.argv[2], sys.argv[3])
-	elif sys.argv[1] == 'move':
+	elif sys.argv[1] == '-move':
 		move(sys.argv[2], sys.argv[3])
