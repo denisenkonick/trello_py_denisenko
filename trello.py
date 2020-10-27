@@ -21,15 +21,20 @@ def read():
 	column_data = requests.get(base_url.format('boards') + '/' + board_id + '/lists', params=auth_params).json()
 	# Теперь выведем название каждой колонки и всех заданий, которые к ней относятся:
 	for column in column_data:
-		print(column["name"])
+		col_name = column["name"]
+		col_cards = []
 		# Получим данные всех задач в колонке и перечислим все названия
 		task_data = requests.get(base_url.format('lists')+'/'+column['id']+'/cards', params=auth_params).json()
-		if not task_data:
-			print('\t'+'Нет задач')
-			continue
+		
 		for task in task_data:
-			print('\t'+task['name'])
-
+			col_cards.append(task['name'])
+					
+		print(f"{col_name!r}: {len(col_cards)} items")
+		if len(col_cards):
+			for card in col_cards:
+				print(f"\t {card}")	
+		else:
+			print('\t'+'Нет задач')
 
 def create(name, column_name):
 	"""Создает задачу с произвольным названием в одной из колонок"""
