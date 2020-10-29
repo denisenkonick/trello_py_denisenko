@@ -11,6 +11,17 @@ auth_params = {
 base_url = "https://api.trello.com/1/{}"  
 board_id = "bT3umroM"
 
+#выводим доп.информацию о выполнении запросов
+debug_mode = True
+
+def board_id_long(board_id):
+	resp = requests.get(base_url.format('boards') + '/' + board_id, params=auth_params)
+	if debug_mode:
+		print(f"Status {resp.status_code}: {resp.text}")
+	resdata = resp.json()
+	if debug_mode:
+		print(f"Board long ID: {resdata['id']}")
+	return resdata['id']
 
 def read():
 	""" Получет данные доски
@@ -18,7 +29,13 @@ def read():
 	"""
 
 	# Получим данные всех колонок на доске:
-	column_data = requests.get(base_url.format('boards') + '/' + board_id + '/lists', params=auth_params).json()
+	resp = requests.get(base_url.format('boards') + '/' + board_id + '/lists', params=auth_params)
+	
+	if debug_mode:
+		print(f"Status {resp.status_code}: {resp.text}")
+	
+	column_data = resp.json()
+
 	# Теперь выведем название каждой колонки и всех заданий, которые к ней относятся:
 	for column in column_data:
 		col_name = column["name"]
@@ -46,13 +63,21 @@ def create(name, column_name):
 	for column in column_data:
 		if column['name'] == column_name:
 			# Создадим задачу с именем _name_ в найденной колонке      
-			requests.post(base_url.format('cards'), data={'name': name, 'idList': column['id'], **auth_params})
+			resp = requests.post(base_url.format('cards'), data={'name': name, 'idList': column['id'], **auth_params})
+			
+			if debug_mode:
+				print(f"Status {resp.status_code}: {resp.text}")
+			
 			break
 
 
 def move(name, column_name):
 	# Получим данные всех колонок на доске
-	column_data = requests.get(base_url.format('boards') + '/' + board_id + '/lists', params=auth_params).json()
+	resp = requests.get(base_url.format('boards') + '/' + board_id + '/lists', params=auth_params)
+	column_data = resp.json()
+	
+	if debug_mode:
+		print(f"Status {resp.status_code}: {resp.text}")
 
 	# Среди всех колонок нужно найти задачу по имени и получить её id
 	task_id = None
@@ -68,9 +93,16 @@ def move(name, column_name):
 	for column in column_data:
 		if column['name'] == column_name:
 			# И выполним запрос к API для перемещения задачи в нужную колонку
-			requests.put(base_url.format('cards') + '/' + task_id, data={'idList': column['id'], **auth_params})
+			resp = requests.put(base_url.format('cards') + '/' + task_id, data={'idList': column['id'], **auth_params})
+			if debug_mode:
+				print(f"Status {resp.status_code}: {resp.text}")
 			break
 
+
+def add_column(name=''):
+	"""Create a new List on a Board"""
+	resp = requests.post(base_url.format('lists'), data={'name': name, 'idBoard': board_id_long(board_id), **auth_params})
+	print(f"Status {resp.status_code}: {resp.text}")
 
 if __name__ == "__main__":
 	if len(sys.argv) <= 2:
@@ -79,3 +111,5 @@ if __name__ == "__main__":
 		create(sys.argv[2], sys.argv[3])
 	elif sys.argv[1] == '-move':
 		move(sys.argv[2], sys.argv[3])
+	elif sys.argv[1] == '-add_column':
+		add_column(sys.argv[2])
